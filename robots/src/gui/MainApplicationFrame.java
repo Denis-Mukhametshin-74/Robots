@@ -146,8 +146,20 @@ public class MainApplicationFrame extends JFrame
             testMenu.add(addLogMessageItem);
         }
 
+        JMenu exitMenu = new JMenu("Выход");
+        exitMenu.setMnemonic(KeyEvent.VK_Q);
+
+        {
+            JMenuItem addCloseApplicationItem = new JMenuItem("Закрыть приложение", KeyEvent.VK_C);
+            addCloseApplicationItem.addActionListener((event) -> {
+                confirmAndExit();
+            });
+            exitMenu.add(addCloseApplicationItem);
+        }
+
         menuBar.add(lookAndFeelMenu);
         menuBar.add(testMenu);
+        menuBar.add(exitMenu);
         return menuBar;
     }
 
