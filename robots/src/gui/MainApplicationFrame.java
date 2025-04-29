@@ -5,7 +5,11 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.Locale;
+import java.util.Scanner;
 
 import javax.swing.JDesktopPane;
 import javax.swing.JFrame;
@@ -28,29 +32,25 @@ import log.Logger;
  */
 public class MainApplicationFrame extends JFrame
 {
+    private static final String WINDOW_STATE_FILE = System.getProperty("user.home") + "/.robot_window_state.cfg";
     private final JDesktopPane desktopPane = new JDesktopPane();
     
     public MainApplicationFrame() {
-        //Make the big window be indented 50 pixels from each edge
-        //of the screen.
 
         setRussianLocale();
 
-        int inset = 50;        
-        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        setBounds(inset, inset,
-            screenSize.width  - inset*2,
-            screenSize.height - inset*2);
+        restoreMainWindowState();
 
         setContentPane(desktopPane);
         
-        
         LogWindow logWindow = createLogWindow();
         addWindow(logWindow);
+        restoreWindowState(logWindow, "logWindow");
 
         GameWindow gameWindow = new GameWindow();
         gameWindow.setSize(400,  400);
         addWindow(gameWindow);
+        restoreWindowState(gameWindow, "gameWindow");
 
         setJMenuBar(generateMenuBar());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -62,6 +62,73 @@ public class MainApplicationFrame extends JFrame
                 confirmAndExit();
             }
         });
+    }
+
+    private void restoreMainWindowState() {
+        //Make the big window be indented 50 pixels from each edge
+        //of the screen.
+
+        int inset = 50;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+        try (Scanner scanner = new Scanner(new File(WINDOW_STATE_FILE))) {
+            if (scanner.hasNextLine()) {
+                String[] mainWindowState = scanner.nextLine().split(",");
+                if (mainWindowState.length == 4) {
+                    setBounds(
+                            Integer.parseInt(mainWindowState[0]),
+                            Integer.parseInt(mainWindowState[1]),
+                            Integer.parseInt(mainWindowState[2]),
+                            Integer.parseInt(mainWindowState[3])
+                    );
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            Logger.debug("Не удалось восстановить состояние главного окна: " + e.getMessage());
+        }
+
+        setBounds(inset, inset, screenSize.width - inset*2, screenSize.height - inset*2);
+    }
+
+    private void restoreWindowState(JInternalFrame frame, String windowId) {
+        try (Scanner scanner = new Scanner(new File(WINDOW_STATE_FILE))) {
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.startsWith(windowId)) {
+                    String[] state = line.substring(windowId.length() + 1).split(",");
+                    if (state.length >= 4) {
+                        frame.setLocation(Integer.parseInt(state[0]), Integer.parseInt(state[1]));
+                        frame.setSize(Integer.parseInt(state[2]), Integer.parseInt(state[3]));
+                        if (state.length > 4 && Boolean.parseBoolean(state[4])) {
+                            frame.setIcon(false);
+                            frame.setMaximum(true);
+                        }
+                    }
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            Logger.debug("Не удалось восстановить состояние окна " + windowId + ": " + e.getMessage());
+        }
+    }
+
+    private void saveWindowStates() {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(WINDOW_STATE_FILE))) {
+            writer.printf("%d,%d,%d,%d\n",
+                    getX(), getY(), getWidth(), getHeight());
+
+            for (JInternalFrame frame : desktopPane.getAllFrames()) {
+                String windowId = (frame instanceof LogWindow) ? "logWindow" : "gameWindow";
+                writer.printf("%s,%d,%d,%d,%d,%b\n",
+                        windowId,
+                        frame.getX(), frame.getY(),
+                        frame.getWidth(), frame.getHeight(),
+                        frame.isMaximum());
+            }
+        } catch (Exception e) {
+            Logger.error("Ошибка при сохранении состояния окон: " + e.getMessage());
+        }
     }
     
     protected LogWindow createLogWindow()
@@ -185,6 +252,7 @@ public class MainApplicationFrame extends JFrame
 
         if (result == JOptionPane.YES_OPTION)
         {
+            saveWindowStates();
             System.exit(0);
         }
     }
