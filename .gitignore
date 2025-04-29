@@ -11,4 +11,5 @@
 /.metadata
 /robots/.settings
 /robots/bin
+/out/
 eclipse.bat
