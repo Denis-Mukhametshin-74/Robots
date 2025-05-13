@@ -6,11 +6,11 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+
 import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.Locale;
 import java.util.Scanner;
 
 import javax.swing.JDesktopPane;
@@ -24,6 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
+import api.LocalizationManager;
 import log.Logger;
 
 /**
@@ -39,8 +40,7 @@ public class MainApplicationFrame extends JFrame
     
     public MainApplicationFrame()
     {
-
-        setRussianLocale();
+        LocalizationManager.setRussianLocale();
 
         restoreMainWindowState();
 
@@ -251,40 +251,6 @@ public class MainApplicationFrame extends JFrame
         JMenuItem menuItem = new JMenuItem(text, mnemonic);
         menuItem.addActionListener((event) -> confirmAndExit());
         menu.add(menuItem);
-    }
-
-    private void setRussianLocale()
-    {
-        try
-        {
-            Locale.setDefault(new Locale("ru", "RU"));
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
-            UIManager.put("OptionPane.yesButtonText", "Да");
-            UIManager.put("OptionPane.noButtonText", "Нет");
-            UIManager.put("OptionPane.cancelButtonText", "Отмена");
-            UIManager.put("OptionPane.okButtonText", "ОК");
-
-            UIManager.put("FileChooser.openButtonText", "Открыть");
-            UIManager.put("FileChooser.saveButtonText", "Сохранить");
-            UIManager.put("FileChooser.cancelButtonText", "Отмена");
-            UIManager.put("FileChooser.fileNameLabelText", "Имя файла");
-            UIManager.put("FileChooser.filesOfTypeLabelText", "Типы файлов");
-            UIManager.put("FileChooser.openDialogTitleText", "Открыть");
-            UIManager.put("FileChooser.saveDialogTitleText", "Сохранить");
-            UIManager.put("FileChooser.lookInLabelText", "Папка");
-            UIManager.put("FileChooser.upFolderToolTipText", "На уровень выше");
-            UIManager.put("FileChooser.homeFolderToolTipText", "Домашняя папка");
-
-            UIManager.put("ColorChooser.okText", "ОК");
-            UIManager.put("ColorChooser.cancelText", "Отмена");
-            UIManager.put("ColorChooser.previewText", "Предпросмотр");
-
-        }
-        catch (Exception e)
-        {
-            Logger.error("Ошибка при установке русского языка: " + e.getMessage());
-        }
     }
 
     private void confirmAndExit()
