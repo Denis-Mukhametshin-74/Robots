@@ -1,6 +1,8 @@
 package gui;
 
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -298,6 +300,11 @@ public class MainApplicationFrame extends JFrame
         if (result == JOptionPane.YES_OPTION)
         {
             saveWindowStates();
+            for (JInternalFrame frame : desktopPane.getAllFrames())
+            {
+                frame.setVisible(false);
+                frame.dispose();
+            }
             System.exit(0);
         }
     }
