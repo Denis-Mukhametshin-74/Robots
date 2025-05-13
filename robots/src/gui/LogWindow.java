@@ -4,21 +4,21 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.TextArea;
 
-import javax.swing.JInternalFrame;
 import javax.swing.JPanel;
 
+import api.SavableJInternalFrame;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
-public class LogWindow extends JInternalFrame implements LogChangeListener
+public class LogWindow extends SavableJInternalFrame implements LogChangeListener
 {
     private LogWindowSource m_logSource;
     private TextArea m_logContent;
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super("Протокол работы", true, true, true, true);
+        super("logWindow");
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");

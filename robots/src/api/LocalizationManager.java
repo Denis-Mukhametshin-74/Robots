@@ -5,7 +5,7 @@ import log.Logger;
 import java.util.Locale;
 import javax.swing.UIManager;
 
-public class LocalizationManager
+public final class LocalizationManager
 {
     public static void setRussianLocale()
     {
