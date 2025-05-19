@@ -11,7 +11,7 @@ public class GameWindow extends SavableJInternalFrame
     private final GameVisualizer m_visualizer;
     public GameWindow() 
     {
-        super("gameWindow");
+        super("Игровое поле");
         m_visualizer = new GameVisualizer();
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(m_visualizer, BorderLayout.CENTER);

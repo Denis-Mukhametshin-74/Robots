@@ -1,8 +1,6 @@
 package api;
 
 import java.beans.PropertyVetoException;
-import java.io.PrintWriter;
-import java.util.Scanner;
 
 import javax.swing.JInternalFrame;
 
@@ -11,63 +9,71 @@ import log.Logger;
 public abstract class SavableJInternalFrame extends JInternalFrame implements StateSavable
 {
     protected final String windowId;
+    private static final String DELIMITER = ",";
 
     public SavableJInternalFrame(String windowId)
     {
+        super(windowId, true, true, true, true);
         this.windowId = windowId;
     }
 
     @Override
-    public void saveState(PrintWriter writer)
+    public byte[] saveState()
     {
-        writer.printf("%s,%d,%d,%d,%d,%b,%b%n",
+        String state = String.join(DELIMITER,
                 windowId,
-                getX(), getY(),
-                getWidth(), getHeight(),
-                isMaximum(), isIcon());
+                Integer.toString(getX()),
+                Integer.toString(getY()),
+                Integer.toString(getWidth()),
+                Integer.toString(getHeight()),
+                Boolean.toString(isMaximum()),
+                Boolean.toString(isIcon()));
+        return state.getBytes();
     }
 
     @Override
-    public void restoreState(Scanner scanner)
+    public void restoreState(byte[] stateData)
     {
-        while (scanner.hasNextLine())
-        {
-            String line = scanner.nextLine();
-            if (line.startsWith(windowId))
-            {
-                String[] state = line.split(",");
-                if (state.length >= 7)
-                {
-                    setBounds(
-                            Integer.parseInt(state[1]),
-                            Integer.parseInt(state[2]),
-                            Integer.parseInt(state[3]),
-                            Integer.parseInt(state[4]));
+        String stateStr = new String(stateData);
+        String[] state = stateStr.split(DELIMITER);
 
-                    if (Boolean.parseBoolean(state[5]))
+        if (state.length >= 7 && state[0].equals(windowId))
+        {
+            try
+            {
+                setBounds(
+                        Integer.parseInt(state[1]),
+                        Integer.parseInt(state[2]),
+                        Integer.parseInt(state[3]),
+                        Integer.parseInt(state[4])
+                );
+
+                if (Boolean.parseBoolean(state[5]))
+                {
+                    try
                     {
-                        try
-                        {
-                            setMaximum(true);
-                        }
-                        catch (PropertyVetoException e)
-                        {
-                            Logger.debug("Не удалось развернуть окно " + windowId);
-                        }
+                        setMaximum(true);
                     }
-                    if (Boolean.parseBoolean(state[6]))
+                    catch (PropertyVetoException e)
                     {
-                        try
-                        {
-                            setIcon(true);
-                        }
-                        catch (PropertyVetoException e)
-                        {
-                            Logger.debug("Не удалось свернуть окно " + windowId);
-                        }
+                        Logger.debug("Не удалось развернуть окно " + windowId);
                     }
                 }
-                break;
+                if (Boolean.parseBoolean(state[6]))
+                {
+                    try
+                    {
+                        setIcon(true);
+                    }
+                    catch (PropertyVetoException e)
+                    {
+                        Logger.debug("Не удалось свернуть окно " + windowId);
+                    }
+                }
+            }
+            catch (NumberFormatException e)
+            {
+                Logger.error("Ошибка формата данных состояния: " + e.getMessage());
             }
         }
     }

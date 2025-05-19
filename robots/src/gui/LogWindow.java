@@ -18,7 +18,7 @@ public class LogWindow extends SavableJInternalFrame implements LogChangeListene
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super("logWindow");
+        super("Протокол работы");
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
