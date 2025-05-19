@@ -1,4 +1,4 @@
-package api;
+package api.localization;
 
 import log.Logger;
 

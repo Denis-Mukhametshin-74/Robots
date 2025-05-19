@@ -1,4 +1,4 @@
-package gui;
+package gui.windows;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
@@ -6,7 +6,7 @@ import java.awt.TextArea;
 
 import javax.swing.JPanel;
 
-import api.SavableJInternalFrame;
+import api.states.SavableJInternalFrame;
 import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
@@ -18,7 +18,7 @@ public class LogWindow extends SavableJInternalFrame implements LogChangeListene
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super("Протокол работы");
+        super("logWindow", "Протокол работы");
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");

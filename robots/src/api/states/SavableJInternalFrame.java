@@ -1,4 +1,4 @@
-package api;
+package api.states;
 
 import java.beans.PropertyVetoException;
 
@@ -9,19 +9,24 @@ import log.Logger;
 public abstract class SavableJInternalFrame extends JInternalFrame implements StateSavable
 {
     protected final String windowId;
-    private static final String DELIMITER = ",";
+    private static final String DELIMITER = "|";
 
-    public SavableJInternalFrame(String windowId)
+    public SavableJInternalFrame(String windowId, String title)
     {
-        super(windowId, true, true, true, true);
+        super(title, true, true, true, true);
         this.windowId = windowId;
+    }
+
+    @Override
+    public String getWindowId()
+    {
+        return windowId;
     }
 
     @Override
     public byte[] saveState()
     {
         String state = String.join(DELIMITER,
-                windowId,
                 Integer.toString(getX()),
                 Integer.toString(getY()),
                 Integer.toString(getWidth()),
@@ -35,20 +40,20 @@ public abstract class SavableJInternalFrame extends JInternalFrame implements St
     public void restoreState(byte[] stateData)
     {
         String stateStr = new String(stateData);
-        String[] state = stateStr.split(DELIMITER);
+        String[] state = stateStr.split("\\" + DELIMITER);
 
-        if (state.length >= 7 && state[0].equals(windowId))
+        if (state.length >= 6)
         {
             try
             {
                 setBounds(
+                        Integer.parseInt(state[0]),
                         Integer.parseInt(state[1]),
                         Integer.parseInt(state[2]),
-                        Integer.parseInt(state[3]),
-                        Integer.parseInt(state[4])
+                        Integer.parseInt(state[3])
                 );
 
-                if (Boolean.parseBoolean(state[5]))
+                if (Boolean.parseBoolean(state[4]))
                 {
                     try
                     {
@@ -59,7 +64,7 @@ public abstract class SavableJInternalFrame extends JInternalFrame implements St
                         Logger.debug("Не удалось развернуть окно " + windowId);
                     }
                 }
-                if (Boolean.parseBoolean(state[6]))
+                if (Boolean.parseBoolean(state[5]))
                 {
                     try
                     {
@@ -73,7 +78,7 @@ public abstract class SavableJInternalFrame extends JInternalFrame implements St
             }
             catch (NumberFormatException e)
             {
-                Logger.error("Ошибка формата данных состояния: " + e.getMessage());
+                Logger.debug("Ошибка восстановления состояния окна " + windowId);
             }
         }
     }
