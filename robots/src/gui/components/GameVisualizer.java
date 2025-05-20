@@ -8,34 +8,34 @@ import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+
+import java.util.Observable;
+import java.util.Observer;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
-public class GameVisualizer extends JPanel
-{
-    private final Timer m_timer = initTimer();
-    
-    private static Timer initTimer() 
-    {
-        Timer timer = new Timer("events generator", true);
-        return timer;
-    }
-    
-    private volatile double m_robotPositionX = 100;
-    private volatile double m_robotPositionY = 100; 
-    private volatile double m_robotDirection = 0; 
+import model.RobotModel;
 
-    private volatile int m_targetPositionX = 150;
-    private volatile int m_targetPositionY = 100;
-    
-    private static final double maxVelocity = 0.1; 
-    private static final double maxAngularVelocity = 0.001; 
-    
-    public GameVisualizer() 
+public class GameVisualizer extends JPanel implements Observer
+{
+    private final Timer timer = initTimer();
+    private final RobotModel robotModel;
+    private boolean initialized = false;
+
+    private static Timer initTimer()
     {
-        m_timer.schedule(new TimerTask()
+        return new Timer("events generator", true);
+    }
+
+    public GameVisualizer(RobotModel robotModel)
+    {
+        this.robotModel = robotModel;
+        robotModel.addObserver(this);
+        initialized = true;
+
+        timer.schedule(new TimerTask()
         {
             @Override
             public void run()
@@ -43,7 +43,8 @@ public class GameVisualizer extends JPanel
                 onRedrawEvent();
             }
         }, 0, 50);
-        m_timer.schedule(new TimerTask()
+
+        timer.schedule(new TimerTask()
         {
             @Override
             public void run()
@@ -51,6 +52,7 @@ public class GameVisualizer extends JPanel
                 onModelUpdateEvent();
             }
         }, 0, 10);
+
         addMouseListener(new MouseAdapter()
         {
             @Override
@@ -60,15 +62,15 @@ public class GameVisualizer extends JPanel
                 repaint();
             }
         });
+
         setDoubleBuffered(true);
     }
 
     protected void setTargetPosition(Point p)
     {
-        m_targetPositionX = p.x;
-        m_targetPositionY = p.y;
+        robotModel.setTargetPosition(p.x, p.y);
     }
-    
+
     protected void onRedrawEvent()
     {
         EventQueue.invokeLater(this::repaint);
@@ -80,69 +82,75 @@ public class GameVisualizer extends JPanel
         double diffY = y1 - y2;
         return Math.sqrt(diffX * diffX + diffY * diffY);
     }
-    
+
     private static double angleTo(double fromX, double fromY, double toX, double toY)
     {
         double diffX = toX - fromX;
         double diffY = toY - fromY;
-        
         return asNormalizedRadians(Math.atan2(diffY, diffX));
     }
-    
+
     protected void onModelUpdateEvent()
     {
-        double distance = distance(m_targetPositionX, m_targetPositionY, 
-            m_robotPositionX, m_robotPositionY);
+        if (!initialized) return;
+        double distance = distance(robotModel.getTargetPositionX(), robotModel.getTargetPositionY(), robotModel.getRobotPositionX(), robotModel.getRobotPositionY());
         if (distance < 0.5)
         {
             return;
         }
-        double velocity = maxVelocity;
-        double angleToTarget = angleTo(m_robotPositionX, m_robotPositionY, m_targetPositionX, m_targetPositionY);
+
+        double velocity = robotModel.getMaxVelocity();
+        double angleToTarget = angleTo(robotModel.getRobotPositionX(), robotModel.getRobotPositionY(), robotModel.getTargetPositionX(), robotModel.getTargetPositionY());
         double angularVelocity = 0;
-        if (angleToTarget > m_robotDirection)
+
+        double angleDiff = asNormalizedRadians(angleToTarget - robotModel.getRobotDirection());
+        if (angleDiff > Math.PI)
         {
-            angularVelocity = maxAngularVelocity;
+            angleDiff -= 2 * Math.PI;
         }
-        if (angleToTarget < m_robotDirection)
+
+        if (angleDiff < 0)
         {
-            angularVelocity = -maxAngularVelocity;
+            angularVelocity = -robotModel.getMaxAngularVelocity();
         }
-        
+        else
+        {
+            angularVelocity = robotModel.getMaxAngularVelocity();
+        }
+
         moveRobot(velocity, angularVelocity, 10);
     }
-    
+
     private static double applyLimits(double value, double min, double max)
     {
-        if (value < min)
-            return min;
-        if (value > max)
-            return max;
+        if (value < min) return min;
+        if (value > max) return max;
         return value;
     }
-    
+
     private void moveRobot(double velocity, double angularVelocity, double duration)
     {
-        velocity = applyLimits(velocity, 0, maxVelocity);
-        angularVelocity = applyLimits(angularVelocity, -maxAngularVelocity, maxAngularVelocity);
-        double newX = m_robotPositionX + velocity / angularVelocity * 
-            (Math.sin(m_robotDirection  + angularVelocity * duration) -
-                Math.sin(m_robotDirection));
+        velocity = applyLimits(velocity, 0, robotModel.getMaxVelocity());
+        angularVelocity = applyLimits(angularVelocity, -robotModel.getMaxAngularVelocity(), robotModel.getMaxAngularVelocity());
+
+        double newX = robotModel.getRobotPositionX() + velocity / angularVelocity *
+                (Math.sin(robotModel.getRobotDirection() + angularVelocity * duration) -
+                        Math.sin(robotModel.getRobotDirection()));
         if (!Double.isFinite(newX))
         {
-            newX = m_robotPositionX + velocity * duration * Math.cos(m_robotDirection);
+            newX = robotModel.getRobotPositionX() + velocity * duration * Math.cos(robotModel.getRobotDirection());
         }
-        double newY = m_robotPositionY - velocity / angularVelocity * 
-            (Math.cos(m_robotDirection  + angularVelocity * duration) -
-                Math.cos(m_robotDirection));
+
+        double newY = robotModel.getRobotPositionY() - velocity / angularVelocity *
+                (Math.cos(robotModel.getRobotDirection() + angularVelocity * duration) -
+                        Math.cos(robotModel.getRobotDirection()));
         if (!Double.isFinite(newY))
         {
-            newY = m_robotPositionY + velocity * duration * Math.sin(m_robotDirection);
+            newY = robotModel.getRobotPositionY() + velocity * duration * Math.sin(robotModel.getRobotDirection());
         }
-        m_robotPositionX = newX;
-        m_robotPositionY = newY;
-        double newDirection = asNormalizedRadians(m_robotDirection + angularVelocity * duration); 
-        m_robotDirection = newDirection;
+
+        double newDirection = asNormalizedRadians(robotModel.getRobotDirection() + angularVelocity * duration);
+        robotModel.updateRobotPosition(newX, newY, newDirection);
     }
 
     private static double asNormalizedRadians(double angle)
@@ -157,54 +165,58 @@ public class GameVisualizer extends JPanel
         }
         return angle;
     }
-    
+
     private static int round(double value)
     {
         return (int)(value + 0.5);
     }
-    
+
     @Override
     public void paint(Graphics g)
     {
         super.paint(g);
-        Graphics2D g2d = (Graphics2D)g; 
-        drawRobot(g2d, round(m_robotPositionX), round(m_robotPositionY), m_robotDirection);
-        drawTarget(g2d, m_targetPositionX, m_targetPositionY);
+        Graphics2D g2d = (Graphics2D)g;
+        drawRobot(g2d, round(robotModel.getRobotPositionX()), round(robotModel.getRobotPositionY()), robotModel.getRobotDirection());
+        drawTarget(g2d, robotModel.getTargetPositionX(), robotModel.getTargetPositionY());
     }
-    
+
     private static void fillOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
     {
         g.fillOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
-    
+
     private static void drawOval(Graphics g, int centerX, int centerY, int diam1, int diam2)
     {
         g.drawOval(centerX - diam1 / 2, centerY - diam2 / 2, diam1, diam2);
     }
-    
+
     private void drawRobot(Graphics2D g, int x, int y, double direction)
     {
-        int robotCenterX = round(m_robotPositionX); 
-        int robotCenterY = round(m_robotPositionY);
-        AffineTransform t = AffineTransform.getRotateInstance(direction, robotCenterX, robotCenterY); 
+        AffineTransform t = AffineTransform.getRotateInstance(direction, x, y);
         g.setTransform(t);
         g.setColor(Color.MAGENTA);
-        fillOval(g, robotCenterX, robotCenterY, 30, 10);
+        fillOval(g, x, y, 30, 10);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX, robotCenterY, 30, 10);
+        drawOval(g, x, y, 30, 10);
         g.setColor(Color.WHITE);
-        fillOval(g, robotCenterX  + 10, robotCenterY, 5, 5);
+        fillOval(g, x + 10, y, 5, 5);
         g.setColor(Color.BLACK);
-        drawOval(g, robotCenterX  + 10, robotCenterY, 5, 5);
+        drawOval(g, x + 10, y, 5, 5);
     }
-    
+
     private void drawTarget(Graphics2D g, int x, int y)
     {
-        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0); 
+        AffineTransform t = AffineTransform.getRotateInstance(0, 0, 0);
         g.setTransform(t);
         g.setColor(Color.GREEN);
         fillOval(g, x, y, 5, 5);
         g.setColor(Color.BLACK);
         drawOval(g, x, y, 5, 5);
+    }
+
+    @Override
+    public void update(Observable o, Object arg)
+    {
+        repaint();
     }
 }

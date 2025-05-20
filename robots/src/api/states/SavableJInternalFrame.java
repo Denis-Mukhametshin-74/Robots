@@ -9,7 +9,7 @@ import log.Logger;
 public abstract class SavableJInternalFrame extends JInternalFrame implements StateSavable
 {
     protected final String windowId;
-    private static final String DELIMITER = "|";
+    private static final String DELIMITER = ",";
 
     public SavableJInternalFrame(String windowId, String title)
     {
@@ -40,7 +40,7 @@ public abstract class SavableJInternalFrame extends JInternalFrame implements St
     public void restoreState(byte[] stateData)
     {
         String stateStr = new String(stateData);
-        String[] state = stateStr.split("\\" + DELIMITER);
+        String[] state = stateStr.split(DELIMITER);
 
         if (state.length >= 6)
         {
