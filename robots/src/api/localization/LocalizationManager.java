@@ -8,8 +8,6 @@ import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
-import javax.swing.UIManager;
-
 import log.Logger;
 
 public final class LocalizationManager
@@ -18,13 +16,18 @@ public final class LocalizationManager
     private static Locale currentLocale;
     private static final Map<String, MessageFormat> messageFormatCache = new HashMap<>();
 
+    static
+    {
+        setLocale(SupportedLocale.ENGLISH.getLocale());
+    }
+
     public static void setLocale(Locale locale)
     {
         try
         {
             currentLocale = locale;
             Locale.setDefault(locale);
-            bundle = ResourceBundle.getBundle("localization.messages", locale);
+            bundle = ResourceBundle.getBundle("localization.messages", locale, LocalizationManager.class.getClassLoader());
 
             UIManagerConfigurator.configureUIManager();
 
@@ -33,7 +36,15 @@ public final class LocalizationManager
         catch (MissingResourceException e)
         {
             Logger.error("Resource bundle not found for locale: " + locale);
-            bundle = ResourceBundle.getBundle("localization.messages", SupportedLocale.RUSSIAN.getLocale());
+            try
+            {
+                bundle = ResourceBundle.getBundle("localization/messages", SupportedLocale.ENGLISH.getLocale(), LocalizationManager.class.getClassLoader());
+            }
+            catch (MissingResourceException ex)
+            {
+                Logger.error("Fallback locale also not found");
+                throw new RuntimeException("No localization files found", ex);
+            }
         }
     }
 
@@ -78,38 +89,5 @@ public final class LocalizationManager
     public static SupportedLocale[] getSupportedLocales()
     {
         return SupportedLocale.values();
-    }
-
-    public static void setRussianLocale()
-    {
-        try
-        {
-            Locale.setDefault(new Locale("ru", "RU"));
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-
-            UIManager.put("OptionPane.yesButtonText", "Да");
-            UIManager.put("OptionPane.noButtonText", "Нет");
-            UIManager.put("OptionPane.cancelButtonText", "Отмена");
-            UIManager.put("OptionPane.okButtonText", "ОК");
-
-            UIManager.put("FileChooser.openButtonText", "Открыть");
-            UIManager.put("FileChooser.saveButtonText", "Сохранить");
-            UIManager.put("FileChooser.cancelButtonText", "Отмена");
-            UIManager.put("FileChooser.fileNameLabelText", "Имя файла");
-            UIManager.put("FileChooser.filesOfTypeLabelText", "Типы файлов");
-            UIManager.put("FileChooser.openDialogTitleText", "Открыть");
-            UIManager.put("FileChooser.saveDialogTitleText", "Сохранить");
-            UIManager.put("FileChooser.lookInLabelText", "Папка");
-            UIManager.put("FileChooser.upFolderToolTipText", "На уровень выше");
-            UIManager.put("FileChooser.homeFolderToolTipText", "Домашняя папка");
-
-            UIManager.put("ColorChooser.okText", "ОК");
-            UIManager.put("ColorChooser.cancelText", "Отмена");
-            UIManager.put("ColorChooser.previewText", "Предпросмотр");
-        }
-        catch (Exception e)
-        {
-            Logger.error("Ошибка при установке русского языка: " + e.getMessage());
-        }
     }
 }

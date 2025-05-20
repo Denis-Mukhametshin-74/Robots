@@ -41,7 +41,6 @@ public class MainApplication extends JFrame
 
     private void initializeApplication()
     {
-        LocalizationManager.setRussianLocale();
         WindowStateManager.restoreMainFrameState(this);
         setContentPane(desktopPane);
     }
@@ -68,7 +67,7 @@ public class MainApplication extends JFrame
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         configureWindow(logWindow, 10, 120, 300, 730);
-        Logger.debug("Протокол работает");
+        Logger.debug(LocalizationManager.getString("log.working"));
         return logWindow;
     }
 
@@ -129,8 +128,8 @@ public class MainApplication extends JFrame
     {
         int result = JOptionPane.showConfirmDialog(
                 this,
-                "Вы действительно хотите выйти?",
-                "Подтверждение выхода",
+                LocalizationManager.getString("exit.confirm.message"),
+                LocalizationManager.getString("exit.confirm.title"),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
@@ -155,7 +154,7 @@ public class MainApplication extends JFrame
         }
         catch (Exception e)
         {
-            Logger.error("Ошибка при сохранении состояния: " + e.getMessage());
+            Logger.error(LocalizationManager.getString("exit.save.error") + e.getMessage());
             System.exit(1);
         }
     }
@@ -169,7 +168,7 @@ public class MainApplication extends JFrame
         }
         catch (Exception e)
         {
-            Logger.debug("Не удалось установить LookAndFeel: " + e.getMessage());
+            Logger.debug(LocalizationManager.getString("menu.view.error") + e.getMessage());
         }
     }
 }

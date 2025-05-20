@@ -8,6 +8,8 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.UIManager;
 
+import api.localization.LocalizationManager;
+import api.localization.SupportedLocale;
 import log.Logger;
 
 public class MenuBuilder
@@ -28,20 +30,21 @@ public class MenuBuilder
         createLookAndFeelMenu();
         createTestMenu();
         createExitMenu();
+        createLanguageMenu();
         return menuBar;
     }
 
     private void createLookAndFeelMenu()
     {
-        JMenu menu = new JMenu("Режим отображения");
+        JMenu menu = new JMenu(LocalizationManager.getString("menu.view"));
         menu.setMnemonic(KeyEvent.VK_V);
         menu.getAccessibleContext().setAccessibleDescription(
-                "Управление режимом отображения приложения");
+                LocalizationManager.getString("menu.view.description"));
 
-        addMenuItem(menu, "Системная схема", KeyEvent.VK_S,
+        addMenuItem(menu, LocalizationManager.getString("menu.view.system"), KeyEvent.VK_S,
                 () -> lookAndFeelSetter.accept(UIManager.getSystemLookAndFeelClassName()));
 
-        addMenuItem(menu, "Универсальная схема", KeyEvent.VK_U,
+        addMenuItem(menu, LocalizationManager.getString("menu.view.cross"), KeyEvent.VK_U,
                 () -> lookAndFeelSetter.accept(UIManager.getCrossPlatformLookAndFeelClassName()));
 
         menuBar.add(menu);
@@ -49,24 +52,47 @@ public class MenuBuilder
 
     private void createTestMenu()
     {
-        JMenu menu = new JMenu("Тесты");
+        JMenu menu = new JMenu(LocalizationManager.getString("menu.tests"));
         menu.setMnemonic(KeyEvent.VK_T);
-        menu.getAccessibleContext().setAccessibleDescription("Тестовые команды");
+        menu.getAccessibleContext().setAccessibleDescription(
+                LocalizationManager.getString("menu.tests.description"));
 
-        addMenuItem(menu, "Сообщение в лог", KeyEvent.VK_S,
-                () -> Logger.debug("Новая строка"));
+        addMenuItem(menu, LocalizationManager.getString("menu.tests.log"), KeyEvent.VK_S,
+                () -> Logger.debug(LocalizationManager.getString("menu.tests.log.message")));
 
         menuBar.add(menu);
     }
 
     private void createExitMenu()
     {
-        JMenu menu = new JMenu("Выход");
+        JMenu menu = new JMenu(LocalizationManager.getString("menu.exit"));
         menu.setMnemonic(KeyEvent.VK_Q);
 
-        addMenuItem(menu, "Закрыть приложение", KeyEvent.VK_C, exitHandler);
+        addMenuItem(menu, LocalizationManager.getString("menu.exit.close"), KeyEvent.VK_C, exitHandler);
 
         menuBar.add(menu);
+    }
+
+    private void createLanguageMenu()
+    {
+        JMenu menu = new JMenu(LocalizationManager.getString("menu.language"));
+        menu.setMnemonic(KeyEvent.VK_L);
+
+        for (SupportedLocale locale : LocalizationManager.getSupportedLocales()) {
+            JMenuItem item = new JMenuItem(locale.getDisplayName());
+            item.addActionListener(e -> {
+                LocalizationManager.setLocale(locale.getLocale());
+                updateMenuLocalization();
+            });
+            menu.add(item);
+        }
+
+        menuBar.add(menu);
+    }
+
+    private void updateMenuLocalization() {
+        // Можно добавить логику обновления меню при смене языка
+        // В текущей реализации меню пересоздается при каждом вызове build()
     }
 
     private void addMenuItem(JMenu parentMenu, String text, int mnemonic, Runnable action)

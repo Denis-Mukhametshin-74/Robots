@@ -9,6 +9,7 @@ import java.util.Observer;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import api.localization.LocalizationManager;
 import api.states.SavableJInternalFrame;
 import model.RobotModel;
 
@@ -19,7 +20,7 @@ public class RobotCoordinatesWindow extends SavableJInternalFrame implements Obs
 
     public RobotCoordinatesWindow(RobotModel robotModel)
     {
-        super("robotCoordinatesWindow", "Координаты робота");
+        super("robotCoordinatesWindow", LocalizationManager.getString("window.coordinates"));
         this.robotModel = robotModel;
 
         initComponents();
@@ -40,11 +41,18 @@ public class RobotCoordinatesWindow extends SavableJInternalFrame implements Obs
 
     private void updateCoordinates()
     {
-        String text = String.format("X: %.2f, Y: %.2f, Направление: %.2f",
+        String text = LocalizationManager.getCachedFormattedString("coordinates.format",
                 robotModel.getRobotPositionX(),
                 robotModel.getRobotPositionY(),
                 robotModel.getRobotDirection());
         coordinatesLabel.setText(text);
+    }
+
+    @Override
+    public void updateLocalization()
+    {
+        setTitle(LocalizationManager.getString("window.coordinates"));
+        updateCoordinates();
     }
 
     @Override

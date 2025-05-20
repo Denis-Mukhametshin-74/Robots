@@ -6,6 +6,7 @@ import java.awt.TextArea;
 
 import javax.swing.JPanel;
 
+import api.localization.LocalizationManager;
 import api.states.SavableJInternalFrame;
 import log.LogChangeListener;
 import log.LogEntry;
@@ -18,7 +19,7 @@ public class LogWindow extends SavableJInternalFrame implements LogChangeListene
 
     public LogWindow(LogWindowSource logSource) 
     {
-        super("logWindow", "Протокол работы");
+        super("logWindow", LocalizationManager.getString("window.log"));
         m_logSource = logSource;
         m_logSource.registerListener(this);
         m_logContent = new TextArea("");
@@ -40,6 +41,12 @@ public class LogWindow extends SavableJInternalFrame implements LogChangeListene
         }
         m_logContent.setText(content.toString());
         m_logContent.invalidate();
+    }
+
+    @Override
+    public void updateLocalization()
+    {
+        setTitle(LocalizationManager.getString("window.log"));
     }
     
     @Override
