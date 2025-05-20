@@ -17,9 +17,10 @@ import api.localization.LocalizationManager;
 import api.states.StateSavable;
 import api.states.WindowStateManager;
 
+import gui.components.MenuBuilder;
 import gui.windows.GameWindow;
 import gui.windows.LogWindow;
-import gui.components.MenuBuilder;
+import gui.windows.RobotCoordinatesWindow;
 
 import log.Logger;
 
@@ -46,7 +47,8 @@ public class MainApplication extends JFrame
     {
         GameWindow gameWindow = createGameWindow();
         LogWindow logWindow = createLogWindow();
-        WindowStateManager.restoreWindowsState(Arrays.asList(gameWindow, logWindow));
+        RobotCoordinatesWindow robotCoordinatesWindow = createRobotCoordinatesWindow();
+        WindowStateManager.restoreWindowsState(Arrays.asList(gameWindow, logWindow, robotCoordinatesWindow));
     }
 
     private List<StateSavable> getAllSavableWindows() {
@@ -62,7 +64,7 @@ public class MainApplication extends JFrame
     protected LogWindow createLogWindow()
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
-        configureWindow(logWindow, 10, 10, 300, 800);
+        configureWindow(logWindow, 10, 120, 300, 730);
         Logger.debug("Протокол работает");
         return logWindow;
     }
@@ -70,8 +72,15 @@ public class MainApplication extends JFrame
     protected GameWindow createGameWindow()
     {
         GameWindow gameWindow = new GameWindow();
-        configureWindow(gameWindow, 320, 10, 400, 400);
+        configureWindow(gameWindow, 320, 10, 840, 840);
         return gameWindow;
+    }
+
+    protected RobotCoordinatesWindow createRobotCoordinatesWindow()
+    {
+        RobotCoordinatesWindow robotCoordinatesWindow = new RobotCoordinatesWindow();
+        configureWindow(robotCoordinatesWindow, 10, 10, 300, 100);
+        return robotCoordinatesWindow;
     }
 
     private void configureWindow(JInternalFrame window, int x, int y, int width, int height)
