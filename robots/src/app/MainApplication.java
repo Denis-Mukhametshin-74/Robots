@@ -22,11 +22,14 @@ import gui.windows.GameWindow;
 import gui.windows.LogWindow;
 import gui.windows.RobotCoordinatesWindow;
 
+import model.RobotModel;
+
 import log.Logger;
 
 public class MainApplication extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
+    private final RobotModel robotModel = new RobotModel();
 
     public MainApplication()
     {
@@ -71,14 +74,14 @@ public class MainApplication extends JFrame
 
     protected GameWindow createGameWindow()
     {
-        GameWindow gameWindow = new GameWindow();
+        GameWindow gameWindow = new GameWindow(robotModel);
         configureWindow(gameWindow, 320, 10, 840, 840);
         return gameWindow;
     }
 
     protected RobotCoordinatesWindow createRobotCoordinatesWindow()
     {
-        RobotCoordinatesWindow robotCoordinatesWindow = new RobotCoordinatesWindow();
+        RobotCoordinatesWindow robotCoordinatesWindow = new RobotCoordinatesWindow(robotModel);
         configureWindow(robotCoordinatesWindow, 10, 10, 300, 100);
         return robotCoordinatesWindow;
     }
