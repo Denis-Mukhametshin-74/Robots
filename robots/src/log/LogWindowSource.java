@@ -2,36 +2,36 @@ package log;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class LogWindowSource
+public final class LogWindowSource
 {
     private final int queueLimit;
     private final Deque<LogEntry> messages;
-    private final List<LogChangeListener> listeners = new CopyOnWriteArrayList<>();
+    private final List<ILogChangeListener> listeners;
 
     public LogWindowSource(int queueLimit)
     {
         this.queueLimit = queueLimit;
         this.messages = new ArrayDeque<>(queueLimit);
+        this.listeners = new CopyOnWriteArrayList<>();
     }
 
-    public void registerListener(LogChangeListener listener)
+    public void registerListener(ILogChangeListener listener)
     {
         listeners.add(listener);
     }
 
-    public void unregisterListener(LogChangeListener listener)
+    public void unregisterListener(ILogChangeListener listener)
     {
         listeners.remove(listener);
     }
 
-    public void append(LogLevel logLevel, String message)
+    public void append(LogLevel logLevel, String strMessage)
     {
-        LogEntry entry = new LogEntry(logLevel, message);
+        LogEntry entry = new LogEntry(logLevel, strMessage);
 
         synchronized (messages)
         {
@@ -42,7 +42,7 @@ public class LogWindowSource
             messages.addLast(entry);
         }
 
-        for (LogChangeListener listener : listeners)
+        for (ILogChangeListener listener : listeners)
         {
             try
             {
@@ -50,7 +50,7 @@ public class LogWindowSource
             }
             catch (Exception e)
             {
-                System.err.println("Error notifying listener: " + e.getMessage());
+                Logger.error("Error notifying listener: " + e.getMessage());
             }
         }
     }
@@ -60,33 +60,6 @@ public class LogWindowSource
         synchronized (messages)
         {
             return messages.size();
-        }
-    }
-
-    public Iterable<LogEntry> range(int startFrom, int count)
-    {
-        synchronized (messages) {
-            if (startFrom < 0 || startFrom >= messages.size())
-            {
-                return Collections.emptyList();
-            }
-
-            List<LogEntry> result = new ArrayList<>();
-            int index = 0;
-            int added = 0;
-
-            for (LogEntry entry : messages)
-            {
-                if (index++ >= startFrom)
-                {
-                    result.add(entry);
-                    if (++added >= count)
-                    {
-                        break;
-                    }
-                }
-            }
-            return result;
         }
     }
 
@@ -102,6 +75,7 @@ public class LogWindowSource
     {
         synchronized (messages)
         {
+            Logger.debug("Clearing log, current size: " + messages.size());
             messages.clear();
         }
     }

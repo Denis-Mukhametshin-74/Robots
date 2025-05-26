@@ -1,5 +1,10 @@
 package gui.windows;
 
+import api.localization.LocalizationManager;
+import api.states.SavableJInternalFrame;
+
+import model.RobotModel;
+
 import java.awt.BorderLayout;
 import java.awt.Font;
 
@@ -9,10 +14,6 @@ import java.util.Observer;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import api.localization.LocalizationManager;
-import api.states.SavableJInternalFrame;
-import model.RobotModel;
-
 public class RobotCoordinatesWindow extends SavableJInternalFrame implements Observer
 {
     private JLabel coordinatesLabel;
@@ -21,10 +22,11 @@ public class RobotCoordinatesWindow extends SavableJInternalFrame implements Obs
     public RobotCoordinatesWindow(RobotModel robotModel)
     {
         super("robotCoordinatesWindow", LocalizationManager.getString("window.coordinates"));
+
         this.robotModel = robotModel;
+        this.robotModel.addObserver(this);
 
         initComponents();
-        robotModel.addObserver(this);
         updateCoordinates();
     }
 
@@ -62,5 +64,12 @@ public class RobotCoordinatesWindow extends SavableJInternalFrame implements Obs
         {
             updateCoordinates();
         }
+    }
+
+    @Override
+    public void dispose()
+    {
+        this.robotModel.deleteObserver(this);
+        super.dispose();
     }
 }
