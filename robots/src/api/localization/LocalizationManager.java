@@ -1,15 +1,22 @@
 package api.localization;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.text.MessageFormat;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Properties;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.ConcurrentHashMap;
 
 import log.Logger;
 
@@ -17,19 +24,42 @@ public final class LocalizationManager
 {
     private static ResourceBundle bundle;
     private static Locale currentLocale;
-    private static final Map<String, MessageFormat> messageFormatCache = new HashMap<>();
-    private static final List<Runnable> localeChangeListeners = new ArrayList<>();
-    private static final Map<String, String> menuItemTextToKeyMap = new HashMap<>();
 
-    static
+    private static final Map<String, MessageFormat> messageFormatCache = new ConcurrentHashMap<>();
+    private static final List<Runnable> localeChangeListeners = new ArrayList<>();
+    private static final Map<String, String> menuItemTextToKeyMap = new ConcurrentHashMap<>();
+
+    private static final String CONFIG_FILE = System.getProperty("user.home") + "/.robot_lang_config.dat";
+    private static final String LANG_KEY = "selected_language";
+
+    private static volatile boolean initialized = false;
+
+    private static synchronized void initialize()
     {
-        setLocale(SupportedLocale.RUSSIAN.getLocale());
-        initMenuItemTextMap();
+        Locale savedLocale = loadSelectedLanguage();
+        setLocale(savedLocale != null ? savedLocale : SupportedLocale.RUSSIAN.getLocale());
+    }
+
+    public static void ensureInitialized()
+    {
+        if (!initialized)
+        {
+            synchronized (LocalizationManager.class)
+            {
+                if (!initialized)
+                {
+                    initialize();
+                    initialized = true;
+                }
+            }
+        }
     }
 
     private static void initMenuItemTextMap()
     {
         menuItemTextToKeyMap.clear();
+        if (bundle == null) return;
+
         Set<String> allKeys = bundle.keySet();
 
         for (String key : allKeys)
@@ -71,6 +101,53 @@ public final class LocalizationManager
         return originalText;
     }
 
+    private static void saveSelectedLanguage()
+    {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(CONFIG_FILE)))
+        {
+            Properties props = new Properties();
+            props.setProperty(LANG_KEY, currentLocale.toString());
+            oos.writeObject(props);
+        }
+        catch (IOException e)
+        {
+            Logger.error("Failed to save language preference: " + e.getMessage());
+        }
+    }
+
+    private static Locale loadSelectedLanguage()
+    {
+        File configFile = new File(CONFIG_FILE);
+        if (!configFile.exists())
+        {
+            return null;
+        }
+
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(CONFIG_FILE)))
+        {
+            Properties props = (Properties) ois.readObject();
+            String langValue = props.getProperty(LANG_KEY);
+
+            if (langValue != null)
+            {
+                String[] parts = langValue.split("_");
+                if (parts.length == 1)
+                {
+                    return new Locale(parts[0]);
+                }
+                else if (parts.length >= 2)
+                {
+                    return new Locale(parts[0], parts[1]);
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Logger.error("Failed to load language preference: " + e.getMessage());
+        }
+        return null;
+    }
+
     public static void setLocale(Locale locale)
     {
         try
@@ -81,6 +158,7 @@ public final class LocalizationManager
 
             initMenuItemTextMap();
             notifyLocaleChangeListeners();
+            saveSelectedLanguage();
 
             Logger.debug("Язык сменён на: " + locale.getDisplayLanguage().toLowerCase());
         }
@@ -124,6 +202,7 @@ public final class LocalizationManager
     {
         try
         {
+            ensureInitialized();
             return bundle.getString(key);
         }
         catch (MissingResourceException e)
