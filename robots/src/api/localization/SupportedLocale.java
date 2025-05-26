@@ -5,7 +5,8 @@ import java.util.Locale;
 public enum SupportedLocale
 {
     RUSSIAN(new Locale("ru", "RU"), "Русский"),
-    ENGLISH(Locale.ENGLISH, "English");
+    ENGLISH(Locale.ENGLISH, "English"),
+    GERMAN(Locale.GERMAN, "Deutsch");
 
     private final Locale locale;
     private final String displayName;
