@@ -2,23 +2,22 @@ package log;
 
 public enum LogLevel
 {
-    Trace(0),
-    Debug(1),
-    Info(2),
-    Warning(3),
-    Error(4),
-    Fatal(5);
+    TRACE(0),
+    DEBUG(1),
+    INFO(2),
+    WARNING(3),
+    ERROR(4),
+    FATAl(5);
     
-    private int m_iLevel;
-    
-    private LogLevel(int iLevel)
+    private final int intLevel;
+
+    LogLevel(int intLevel)
     {
-        m_iLevel = iLevel;
+        this.intLevel = intLevel;
     }
-    
-    public int level()
+
+    public int getIntLevel()
     {
-        return m_iLevel;
+        return intLevel;
     }
 }
-

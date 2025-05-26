@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import api.localization.LocalizationManager;
+import api.states.SavableJInternalFrame;
 import api.states.StateSavable;
 import api.states.WindowStateManager;
 
@@ -30,6 +31,7 @@ public class MainApplication extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final RobotModel robotModel = new RobotModel();
+    private MenuBuilder menuBuilder;
 
     public MainApplication()
     {
@@ -37,11 +39,11 @@ public class MainApplication extends JFrame
         setupWindows();
         setupMenu();
         setupWindowClosingHandler();
+        LocalizationManager.addLocaleChangeListener(this::updateUIOnLocaleChange);
     }
 
     private void initializeApplication()
     {
-        LocalizationManager.setRussianLocale();
         WindowStateManager.restoreMainFrameState(this);
         setContentPane(desktopPane);
     }
@@ -54,10 +56,13 @@ public class MainApplication extends JFrame
         WindowStateManager.restoreWindowsState(Arrays.asList(gameWindow, logWindow, robotCoordinatesWindow));
     }
 
-    private List<StateSavable> getAllSavableWindows() {
+    private List<StateSavable> getAllSavableWindows()
+    {
         List<StateSavable> windows = new ArrayList<>();
-        for (JInternalFrame frame : desktopPane.getAllFrames()) {
-            if (frame instanceof StateSavable) {
+        for (JInternalFrame frame : desktopPane.getAllFrames())
+        {
+            if (frame instanceof StateSavable)
+            {
                 windows.add((StateSavable) frame);
             }
         }
@@ -68,7 +73,7 @@ public class MainApplication extends JFrame
     {
         LogWindow logWindow = new LogWindow(Logger.getDefaultLogSource());
         configureWindow(logWindow, 10, 120, 300, 730);
-        Logger.debug("Протокол работает");
+        Logger.debug(LocalizationManager.getString("log.working"));
         return logWindow;
     }
 
@@ -105,11 +110,26 @@ public class MainApplication extends JFrame
 
     private void setupMenu()
     {
-        MenuBuilder menuBuilder = new MenuBuilder(
+        menuBuilder = new MenuBuilder(
                 this::setLookAndFeel,
                 this::confirmAndExit
         );
         setJMenuBar(menuBuilder.build());
+    }
+
+    public void updateUIOnLocaleChange()
+    {
+        menuBuilder.updateMenuLocalization();
+        SwingUtilities.updateComponentTreeUI(this);
+
+        for (JInternalFrame frame : desktopPane.getAllFrames())
+        {
+            if (frame instanceof SavableJInternalFrame)
+            {
+                ((SavableJInternalFrame) frame).updateLocalization();
+            }
+            SwingUtilities.updateComponentTreeUI(frame);
+        }
     }
 
     private void setupWindowClosingHandler()
@@ -127,10 +147,13 @@ public class MainApplication extends JFrame
 
     private void confirmAndExit()
     {
+        UIManager.put("OptionPane.yesButtonText", LocalizationManager.getString("option.yes"));
+        UIManager.put("OptionPane.noButtonText", LocalizationManager.getString("option.no"));
+
         int result = JOptionPane.showConfirmDialog(
                 this,
-                "Вы действительно хотите выйти?",
-                "Подтверждение выхода",
+                LocalizationManager.getString("exit.confirm.message"),
+                LocalizationManager.getString("exit.confirm.title"),
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
@@ -155,7 +178,7 @@ public class MainApplication extends JFrame
         }
         catch (Exception e)
         {
-            Logger.error("Ошибка при сохранении состояния: " + e.getMessage());
+            Logger.error(LocalizationManager.getString("Ошибка при сохранении состояния: ") + e.getMessage());
             System.exit(1);
         }
     }
@@ -169,7 +192,14 @@ public class MainApplication extends JFrame
         }
         catch (Exception e)
         {
-            Logger.debug("Не удалось установить LookAndFeel: " + e.getMessage());
+            Logger.debug(LocalizationManager.getString("Не удалось установить LookAndFeel: ") + e.getMessage());
         }
+    }
+
+    @Override
+    public void dispose()
+    {
+        LocalizationManager.removeLocaleChangeListener(this::updateUIOnLocaleChange);
+        super.dispose();
     }
 }

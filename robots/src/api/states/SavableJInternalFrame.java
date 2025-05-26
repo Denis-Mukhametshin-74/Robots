@@ -17,6 +17,8 @@ public abstract class SavableJInternalFrame extends JInternalFrame implements St
         this.windowId = windowId;
     }
 
+    public abstract void updateLocalization();
+
     @Override
     public String getWindowId()
     {
