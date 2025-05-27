@@ -12,14 +12,14 @@ import java.util.jar.JarFile;
 
 public class RobotLoader
 {
-    public static List<Class<? extends LoadableRobot>> loadRobotsFromJar(File jarFile) throws Exception
+    public static List<Class<? extends ExternalRobot>> loadRobotsFromJar(File jarFile) throws Exception
     {
         if (!jarFile.getName().endsWith(".jar"))
         {
             throw new IllegalArgumentException("File must be a JAR archive");
         }
 
-        List<Class<? extends LoadableRobot>> robotClasses = new ArrayList<>();
+        List<Class<? extends ExternalRobot>> robotClasses = new ArrayList<>();
         JarFile jar = new JarFile(jarFile);
         URL[] urls = { new URL("jar:file:" + jarFile.getAbsolutePath() + "!/") };
 
@@ -38,10 +38,10 @@ public class RobotLoader
                                 .replace(".class", "");
 
                         Class<?> loadedClass = cl.loadClass(className);
-                        if (LoadableRobot.class.isAssignableFrom(loadedClass))
+                        if (ExternalRobot.class.isAssignableFrom(loadedClass))
                         {
                             @SuppressWarnings("unchecked")
-                            Class<? extends LoadableRobot> robotClass = (Class<? extends LoadableRobot>) loadedClass;
+                            Class<? extends ExternalRobot> robotClass = (Class<? extends ExternalRobot>) loadedClass;
                             robotClasses.add(robotClass);
                         }
                     }
