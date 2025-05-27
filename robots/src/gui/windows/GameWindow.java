@@ -5,7 +5,7 @@ import api.states.SavableJInternalFrame;
 
 import gui.components.GameVisualizer;
 
-import model.RobotModel;
+import api.robots.RobotModel;
 
 import java.awt.BorderLayout;
 

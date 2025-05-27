@@ -17,7 +17,7 @@ import java.util.TimerTask;
 import javax.swing.JPanel;
 
 import api.robots.ExternalRobot;
-import model.RobotModel;
+import api.robots.RobotModel;
 
 public class GameVisualizer extends JPanel implements Observer
 {

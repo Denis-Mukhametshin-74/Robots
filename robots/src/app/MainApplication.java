@@ -23,7 +23,7 @@ import gui.windows.GameWindow;
 import gui.windows.LogWindow;
 import gui.windows.RobotCoordinatesWindow;
 
-import model.RobotModel;
+import api.robots.RobotModel;
 
 import log.Logger;
 

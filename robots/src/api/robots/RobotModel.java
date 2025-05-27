@@ -1,4 +1,4 @@
-package model;
+package api.robots;
 
 import java.util.Observable;
 import java.util.Timer;

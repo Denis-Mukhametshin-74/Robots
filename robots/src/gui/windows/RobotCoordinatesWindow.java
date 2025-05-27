@@ -3,7 +3,7 @@ package gui.windows;
 import api.localization.LocalizationManager;
 import api.states.SavableJInternalFrame;
 
-import model.RobotModel;
+import api.robots.RobotModel;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
