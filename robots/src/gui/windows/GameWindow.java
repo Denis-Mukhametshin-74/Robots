@@ -13,16 +13,23 @@ import javax.swing.JPanel;
 
 public class GameWindow extends SavableJInternalFrame
 {
+    private final GameVisualizer visualizer;
+
     public GameWindow(RobotModel robotModel)
     {
         super("gameWindow", LocalizationManager.getString("window.game"));
 
-        GameVisualizer gameVisualizer = new GameVisualizer(robotModel);
+        this.visualizer = new GameVisualizer(robotModel);
 
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(gameVisualizer, BorderLayout.CENTER);
+        panel.add(visualizer, BorderLayout.CENTER);
         getContentPane().add(panel);
         pack();
+    }
+
+    public GameVisualizer getVisualizer()
+    {
+        return visualizer;
     }
 
     @Override

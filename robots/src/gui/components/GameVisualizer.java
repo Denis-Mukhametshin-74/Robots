@@ -72,6 +72,7 @@ public class GameVisualizer extends JPanel implements Observer
     public void setExternalRobot(ExternalRobot robot)
     {
         this.currentRobot = robot;
+        repaint();
     }
 
     protected void setTargetPosition(Point p)

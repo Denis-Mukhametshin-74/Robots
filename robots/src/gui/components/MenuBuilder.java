@@ -24,11 +24,14 @@ public class MenuBuilder
     private final Runnable exitHandler;
     private final List<JMenu> menus = new ArrayList<>();
 
-    public MenuBuilder(Consumer<String> lookAndFeelSetter, Runnable exitHandler)
+    private final RobotMenuBuilder robotMenuBuilder;
+
+    public MenuBuilder(Consumer<String> lookAndFeelSetter, Runnable exitHandler, GameVisualizer visualizer)
     {
         this.menuBar = new JMenuBar();
         this.lookAndFeelSetter = Objects.requireNonNull(lookAndFeelSetter);
         this.exitHandler = Objects.requireNonNull(exitHandler);
+        this.robotMenuBuilder = new RobotMenuBuilder(visualizer);
     }
 
     public JMenuBar build()
@@ -39,6 +42,7 @@ public class MenuBuilder
         createLookAndFeelMenu();
         createTestMenu();
         createLanguageMenu();
+        menuBar.add(robotMenuBuilder.buildRobotMenu());
         createExitMenu();
 
         return menuBar;
