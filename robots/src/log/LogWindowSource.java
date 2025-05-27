@@ -10,7 +10,7 @@ public final class LogWindowSource
 {
     private final int queueLimit;
     private final Deque<LogEntry> messages;
-    private final List<ILogChangeListener> listeners;
+    private final List<LogChangeListener> listeners;
 
     public LogWindowSource(int queueLimit)
     {
@@ -19,12 +19,12 @@ public final class LogWindowSource
         this.listeners = new CopyOnWriteArrayList<>();
     }
 
-    public void registerListener(ILogChangeListener listener)
+    public void registerListener(LogChangeListener listener)
     {
         listeners.add(listener);
     }
 
-    public void unregisterListener(ILogChangeListener listener)
+    public void unregisterListener(LogChangeListener listener)
     {
         listeners.remove(listener);
     }
@@ -42,7 +42,7 @@ public final class LogWindowSource
             messages.addLast(entry);
         }
 
-        for (ILogChangeListener listener : listeners)
+        for (LogChangeListener listener : listeners)
         {
             try
             {

@@ -1,6 +1,6 @@
 package log;
 
-public interface ILogChangeListener
+public interface LogChangeListener
 {
     void onLogChanged();
 }

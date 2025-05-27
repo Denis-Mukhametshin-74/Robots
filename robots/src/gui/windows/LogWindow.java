@@ -3,7 +3,7 @@ package gui.windows;
 import api.localization.LocalizationManager;
 import api.states.SavableJInternalFrame;
 
-import log.ILogChangeListener;
+import log.LogChangeListener;
 import log.LogEntry;
 import log.LogWindowSource;
 
@@ -13,7 +13,7 @@ import java.awt.TextArea;
 
 import javax.swing.JPanel;
 
-public class LogWindow extends SavableJInternalFrame implements ILogChangeListener
+public class LogWindow extends SavableJInternalFrame implements LogChangeListener
 {
     private final LogWindowSource logSource;
     private final TextArea logContent;
