@@ -16,12 +16,15 @@ import java.util.TimerTask;
 
 import javax.swing.JPanel;
 
-import model.RobotModel;
+import api.robots.ExternalRobot;
+import api.robots.RobotModel;
 
 public class GameVisualizer extends JPanel implements Observer
 {
     private final Timer timer = initTimer();
     private final RobotModel robotModel;
+    private ExternalRobot currentRobot;
+
     private boolean initialized = false;
 
     private static Timer initTimer()
@@ -64,6 +67,12 @@ public class GameVisualizer extends JPanel implements Observer
         });
 
         setDoubleBuffered(true);
+    }
+
+    public void setExternalRobot(ExternalRobot robot)
+    {
+        this.currentRobot = robot;
+        repaint();
     }
 
     protected void setTargetPosition(Point p)
@@ -130,27 +139,34 @@ public class GameVisualizer extends JPanel implements Observer
 
     private void moveRobot(double velocity, double angularVelocity, double duration)
     {
-        velocity = applyLimits(velocity, 0, robotModel.getMaxVelocity());
-        angularVelocity = applyLimits(angularVelocity, -robotModel.getMaxAngularVelocity(), robotModel.getMaxAngularVelocity());
-
-        double newX = robotModel.getRobotPositionX() + velocity / angularVelocity *
-                (Math.sin(robotModel.getRobotDirection() + angularVelocity * duration) -
-                        Math.sin(robotModel.getRobotDirection()));
-        if (!Double.isFinite(newX))
+        if (currentRobot != null)
         {
-            newX = robotModel.getRobotPositionX() + velocity * duration * Math.cos(robotModel.getRobotDirection());
+            currentRobot.updateRobotPosition(robotModel, velocity, angularVelocity, duration);
         }
-
-        double newY = robotModel.getRobotPositionY() - velocity / angularVelocity *
-                (Math.cos(robotModel.getRobotDirection() + angularVelocity * duration) -
-                        Math.cos(robotModel.getRobotDirection()));
-        if (!Double.isFinite(newY))
+        else
         {
-            newY = robotModel.getRobotPositionY() + velocity * duration * Math.sin(robotModel.getRobotDirection());
-        }
+            velocity = applyLimits(velocity, 0, robotModel.getMaxVelocity());
+            angularVelocity = applyLimits(angularVelocity, -robotModel.getMaxAngularVelocity(), robotModel.getMaxAngularVelocity());
 
-        double newDirection = asNormalizedRadians(robotModel.getRobotDirection() + angularVelocity * duration);
-        robotModel.updateRobotPosition(newX, newY, newDirection);
+            double newX = robotModel.getRobotPositionX() + velocity / angularVelocity *
+                    (Math.sin(robotModel.getRobotDirection() + angularVelocity * duration) -
+                            Math.sin(robotModel.getRobotDirection()));
+            if (!Double.isFinite(newX))
+            {
+                newX = robotModel.getRobotPositionX() + velocity * duration * Math.cos(robotModel.getRobotDirection());
+            }
+
+            double newY = robotModel.getRobotPositionY() - velocity / angularVelocity *
+                    (Math.cos(robotModel.getRobotDirection() + angularVelocity * duration) -
+                            Math.cos(robotModel.getRobotDirection()));
+            if (!Double.isFinite(newY))
+            {
+                newY = robotModel.getRobotPositionY() + velocity * duration * Math.sin(robotModel.getRobotDirection());
+            }
+
+            double newDirection = asNormalizedRadians(robotModel.getRobotDirection() + angularVelocity * duration);
+            robotModel.updateRobotPosition(newX, newY, newDirection);
+        }
     }
 
     private static double asNormalizedRadians(double angle)
@@ -192,16 +208,23 @@ public class GameVisualizer extends JPanel implements Observer
 
     private void drawRobot(Graphics2D g, int x, int y, double direction)
     {
-        AffineTransform t = AffineTransform.getRotateInstance(direction, x, y);
-        g.setTransform(t);
-        g.setColor(Color.MAGENTA);
-        fillOval(g, x, y, 30, 10);
-        g.setColor(Color.BLACK);
-        drawOval(g, x, y, 30, 10);
-        g.setColor(Color.WHITE);
-        fillOval(g, x + 10, y, 5, 5);
-        g.setColor(Color.BLACK);
-        drawOval(g, x + 10, y, 5, 5);
+        if (currentRobot != null)
+        {
+            currentRobot.drawRobot(g, x, y, direction);
+        }
+        else
+        {
+            AffineTransform t = AffineTransform.getRotateInstance(direction, x, y);
+            g.setTransform(t);
+            g.setColor(Color.MAGENTA);
+            fillOval(g, x, y, 30, 10);
+            g.setColor(Color.BLACK);
+            drawOval(g, x, y, 30, 10);
+            g.setColor(Color.WHITE);
+            fillOval(g, x + 10, y, 5, 5);
+            g.setColor(Color.BLACK);
+            drawOval(g, x + 10, y, 5, 5);
+        }
     }
 
     private void drawTarget(Graphics2D g, int x, int y)

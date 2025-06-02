@@ -18,12 +18,13 @@ import api.states.SavableJInternalFrame;
 import api.states.StateSavable;
 import api.states.WindowStateManager;
 
+import gui.components.GameVisualizer;
 import gui.components.MenuBuilder;
 import gui.windows.GameWindow;
 import gui.windows.LogWindow;
 import gui.windows.RobotCoordinatesWindow;
 
-import model.RobotModel;
+import api.robots.RobotModel;
 
 import log.Logger;
 
@@ -31,12 +32,20 @@ public class MainApplication extends JFrame
 {
     private final JDesktopPane desktopPane = new JDesktopPane();
     private final RobotModel robotModel = new RobotModel();
+    private final GameVisualizer visualizer;
     private MenuBuilder menuBuilder;
 
     public MainApplication()
     {
         initializeApplication();
-        setupWindows();
+
+        GameWindow gameWindow = createGameWindow();
+        LogWindow logWindow = createLogWindow();
+        RobotCoordinatesWindow robotCoordinatesWindow = createRobotCoordinatesWindow();
+        WindowStateManager.restoreWindowsState(Arrays.asList(gameWindow, logWindow, robotCoordinatesWindow));
+
+        this.visualizer = gameWindow.getVisualizer();
+
         setupMenu();
         setupWindowClosingHandler();
         LocalizationManager.addLocaleChangeListener(this::updateUIOnLocaleChange);
@@ -46,14 +55,6 @@ public class MainApplication extends JFrame
     {
         WindowStateManager.restoreMainFrameState(this);
         setContentPane(desktopPane);
-    }
-
-    private void setupWindows()
-    {
-        GameWindow gameWindow = createGameWindow();
-        LogWindow logWindow = createLogWindow();
-        RobotCoordinatesWindow robotCoordinatesWindow = createRobotCoordinatesWindow();
-        WindowStateManager.restoreWindowsState(Arrays.asList(gameWindow, logWindow, robotCoordinatesWindow));
     }
 
     private List<StateSavable> getAllSavableWindows()
@@ -112,7 +113,8 @@ public class MainApplication extends JFrame
     {
         menuBuilder = new MenuBuilder(
                 this::setLookAndFeel,
-                this::confirmAndExit
+                this::confirmAndExit,
+                visualizer
         );
         setJMenuBar(menuBuilder.build());
     }

@@ -160,11 +160,11 @@ public final class LocalizationManager
             notifyLocaleChangeListeners();
             saveSelectedLanguage();
 
-            Logger.debug("Язык сменён на: " + locale.getDisplayLanguage().toLowerCase());
+            Logger.debug("Locale set to: " + locale.getDisplayLanguage().toLowerCase());
         }
         catch (MissingResourceException e)
         {
-            Logger.error("Пакет ресурсов языка не найден:" + locale);
+            Logger.error("Failed to load bundle for locale: " + locale);
         }
     }
 
@@ -188,7 +188,7 @@ public final class LocalizationManager
             }
             catch (Exception e)
             {
-                Logger.error("Ошибка в слушателе событий смены языка: " + e.getMessage());
+                Logger.error("Error in language change event listener: " + e.getMessage());
             }
         }
     }
@@ -207,7 +207,7 @@ public final class LocalizationManager
         }
         catch (MissingResourceException e)
         {
-            Logger.error("Отсутствует ресурс для ключа: " + key);
+            Logger.error("Missing resource for key: " + key);
             return key;
         }
     }
